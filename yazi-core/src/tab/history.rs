@@ -24,4 +24,10 @@ impl History {
 	pub fn remove_or(&mut self, url: &Url) -> Folder {
 		self.0.remove(url).unwrap_or_else(|| Folder::from(url))
 	}
+
+	// v1.0 - Ensure folder exists in history without removing it
+	#[inline]
+	pub fn ensure(&mut self, url: &Url) -> &Folder {
+		self.0.entry(url.clone()).or_insert_with(|| Folder::from(url))
+	}
 }

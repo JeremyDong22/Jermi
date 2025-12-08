@@ -1,6 +1,5 @@
 // Anchor manipulation command
-// v1.1 - Shift+Left/Right to move anchor position
-// Fixed: Added MgrProxy::refresh() to load folders properly
+// v1.2 - Fixed: use ensure() instead of remove_or() to keep folders in history
 use yazi_macro::render;
 use yazi_proxy::MgrProxy;
 use yazi_shared::event::{CmdCow, Data};
@@ -52,21 +51,21 @@ impl Tab {
 		self.anchor = Some(new_anchor.clone());
 
 		// Ensure new anchor folder is in history (triggers loading)
-		let _ = self.history.remove_or(&new_anchor);
+		let _ = self.history.ensure(&new_anchor);
 
-		// Rebuild pane_urls: insert old anchor at the beginning
+		// Rebuild pane_urls: insert new anchor at the beginning
 		if self.pane_urls.is_empty() {
-			// Currently at anchor, now we have 1 pane showing old anchor
-			self.pane_urls.push(current_anchor.clone());
+			// At anchor position: create panes [new_anchor, cwd]
+			self.pane_urls.push(new_anchor.clone());
 			self.pane_urls.push(self.cwd().clone());
 		} else {
-			// Already have panes, insert old anchor at beginning
-			self.pane_urls.insert(0, current_anchor.clone());
+			// Already have panes, insert new anchor at beginning
+			self.pane_urls.insert(0, new_anchor.clone());
 		}
 
 		// Ensure all pane folders are in history
 		for url in &self.pane_urls {
-			let _ = self.history.remove_or(url);
+			let _ = self.history.ensure(url);
 		}
 
 		// Need to update parent pane since we changed the view

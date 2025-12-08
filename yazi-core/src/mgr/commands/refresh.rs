@@ -1,5 +1,5 @@
 // Refresh command
-// v1.1 - Added support for loading pane_urls folders (dynamic panes)
+// v1.2 - Fixed: ensure pane_urls folders are created in history before loading
 use crossterm::{execute, terminal::SetTitle};
 use yazi_config::YAZI;
 use yazi_fs::CWD;
@@ -16,14 +16,20 @@ impl Mgr {
 
 		self.active_mut().apply_files_attrs();
 
+		// Dynamic panes: ensure all pane_urls folders exist in history
+		let pane_urls: Vec<_> = self.active().pane_urls.clone();
+		for url in &pane_urls {
+			let _ = self.active_mut().history.ensure(url);
+		}
+
 		// Collect all directories that need to be loaded
 		let mut dirs_to_load = vec![self.current()];
 		if let Some(p) = self.parent() {
 			dirs_to_load.push(p);
 		}
 
-		// Dynamic panes: also load folders from pane_urls
-		for url in &self.active().pane_urls {
+		// Dynamic panes: add folders from pane_urls (now guaranteed to exist)
+		for url in &pane_urls {
 			if let Some(folder) = self.active().history.get(url) {
 				dirs_to_load.push(folder);
 			}
