@@ -1,5 +1,5 @@
 -- Tab component with dynamic panes support
--- v1.0 - Fixed jitter: all panes use x(1) padding for consistency
+-- v1.1 - Fixed: all modes use consistent x(1) padding
 Tab = {
 	_id = "tab",
 }
@@ -109,9 +109,10 @@ function Tab:build()
 		}
 	else
 		-- Default 3-column layout
+		-- v1.1: Add x(1) padding to Current for consistency
 		self._children = {
 			Parent:new(self._chunks[1]:pad(ui.Pad.x(1)), self._tab),
-			Current:new(self._chunks[2], self._tab),
+			Current:new(self._chunks[2]:pad(ui.Pad.x(1)), self._tab),
 			Preview:new(self._chunks[3]:pad(ui.Pad.x(1)), self._tab),
 			Rail:new(self._chunks, self._tab, { self._tab.parent, self._tab.current }),
 		}

@@ -1,5 +1,5 @@
 -- Pane component for dynamic panes
--- v0.1 - Displays a folder from history by URL
+-- v0.2 - Fixed: click navigates with cd instead of reveal to preserve pane structure
 Pane = {
 	_id = "pane",
 }
@@ -43,7 +43,14 @@ function Pane:click(event, up)
 	local y = event.y - self._area.y + 1
 	local window = self._folder and self._folder.window or {}
 	if window[y] then
-		ya.emit("reveal", { window[y].url })
+		local file = window[y]
+		if file.cha.is_dir then
+			-- Directory: use cd to navigate (preserves anchor context)
+			ya.emit("cd", { file.url })
+		else
+			-- File: use reveal to show it
+			ya.emit("reveal", { file.url })
+		end
 	end
 end
 
