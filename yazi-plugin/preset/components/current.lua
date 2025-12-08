@@ -10,6 +10,7 @@ function Current:new(area, tab)
 	}, { __index = self })
 end
 
+-- v0.2: Empty folder shows highlighted "No items" for cursor visibility
 function Current:empty()
 	local s
 	if self._folder.files.filter then
@@ -19,8 +20,9 @@ function Current:empty()
 		s = not done and "Loading..." or not err and "No items" or string.format("Error: %s", err)
 	end
 
+	-- Show with hovered style so user knows where cursor is
 	return {
-		ui.Line(s):area(self._area):align(ui.Align.CENTER),
+		ui.Line(" " .. s):area(self._area):style(th.mgr.hovered),
 	}
 end
 

@@ -51,9 +51,18 @@ impl Tab {
 			return self.cd_interactive();
 		}
 
+		// Dynamic panes v0.4: Set anchor BEFORE early return check (startup directory)
+		// This ensures anchor is set even if cd() is called with the same directory
+		if self.anchor.is_none() {
+			self.anchor = Some(opt.target.clone());
+		}
+
 		if opt.target == *self.cwd() {
 			return;
 		}
+
+		// Dynamic panes v0.4: Save current cwd BEFORE any changes
+		let prev_cwd = self.cwd().clone();
 
 		// Take parent to history
 		if let Some(rep) = self.parent.take() {
@@ -67,14 +76,44 @@ impl Tab {
 			self.history.insert(rep.url.to_owned(), rep);
 		}
 
-		// Parent
-		if let Some(parent) = opt.target.parent_url() {
+		// Parent - v0.3: Don't set parent if at anchor (hide parent pane)
+		let at_anchor = self.anchor.as_ref() == Some(&opt.target);
+		if at_anchor {
+			// At anchor: no parent pane
+			self.parent = None;
+		} else if let Some(parent) = opt.target.parent_url() {
 			self.parent = Some(self.history.remove_or(&parent));
 		}
 
 		// Backstack
 		if opt.source.big_jump() && opt.target.is_regular() {
 			self.backstack.push(&opt.target);
+		}
+
+		// Dynamic panes v0.3: Update pane_urls based on navigation source
+		match opt.source {
+			OptSource::Enter => {
+				// Enter: Push the target URL to pane_urls
+				if self.pane_urls.is_empty() {
+					// First enter: prev_cwd (anchor) + target
+					self.pane_urls.push(prev_cwd);
+				}
+				self.pane_urls.push(opt.target.clone());
+			}
+			OptSource::Leave => {
+				// Leave: Pop from pane_urls, keep at least anchor
+				if self.pane_urls.len() > 1 {
+					self.pane_urls.pop();
+					// If only anchor left, clear to return to 2-pane mode
+					if self.pane_urls.len() == 1 {
+						self.pane_urls.clear();
+					}
+				}
+			}
+			_ => {
+				// Cd, Reveal, Forward, Back: Reset pane_urls
+				self.pane_urls.clear();
+			}
 		}
 
 		Pubsub::pub_from_cd(self.id, self.cwd());

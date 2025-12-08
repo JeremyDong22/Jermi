@@ -1,21 +1,22 @@
 use std::ops::Deref;
 
 use mlua::{AnyUserData, UserData, UserDataFields, UserDataMethods, Value};
-use yazi_binding::{Id, UrlRef, cached_field};
+use yazi_binding::{Id, Url, UrlRef, cached_field};
 
 use super::{Finder, Folder, Lives, Mode, Preference, Preview, PtrCell, Selected};
 
 pub(super) struct Tab {
 	inner: PtrCell<yazi_core::tab::Tab>,
 
-	v_name:     Option<Value>,
-	v_mode:     Option<Value>,
-	v_pref:     Option<Value>,
-	v_current:  Option<Value>,
-	v_parent:   Option<Value>,
-	v_selected: Option<Value>,
-	v_preview:  Option<Value>,
-	v_finder:   Option<Value>,
+	v_name:      Option<Value>,
+	v_mode:      Option<Value>,
+	v_pref:      Option<Value>,
+	v_current:   Option<Value>,
+	v_parent:    Option<Value>,
+	v_selected:  Option<Value>,
+	v_preview:   Option<Value>,
+	v_finder:    Option<Value>,
+	v_pane_urls: Option<Value>,
 }
 
 impl Deref for Tab {
@@ -30,14 +31,15 @@ impl Tab {
 		Lives::scoped_userdata(Self {
 			inner: inner.into(),
 
-			v_name:     None,
-			v_mode:     None,
-			v_pref:     None,
-			v_current:  None,
-			v_parent:   None,
-			v_selected: None,
-			v_preview:  None,
-			v_finder:   None,
+			v_name:      None,
+			v_mode:      None,
+			v_pref:      None,
+			v_current:   None,
+			v_parent:    None,
+			v_selected:  None,
+			v_preview:   None,
+			v_finder:    None,
+			v_pane_urls: None,
 		})
 	}
 }
@@ -60,6 +62,17 @@ impl UserData for Tab {
 
 		cached_field!(fields, preview, |_, me| Preview::make(me));
 		cached_field!(fields, finder, |_, me| me.finder.as_ref().map(Finder::make).transpose());
+
+		// Dynamic panes URLs
+		cached_field!(fields, pane_urls, |lua, me| {
+			let urls: Vec<_> = me.pane_urls.iter().map(|u| Url::new(u.clone())).collect();
+			lua.create_sequence_from(urls)
+		});
+
+		// Dynamic panes anchor (startup directory)
+		fields.add_field_method_get("anchor", |_, me| {
+			Ok(me.anchor.as_ref().map(|u| Url::new(u.clone())))
+		});
 	}
 
 	fn add_methods<M: UserDataMethods<Self>>(methods: &mut M) {

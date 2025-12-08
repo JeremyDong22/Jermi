@@ -27,6 +27,10 @@ pub struct Tab {
 	pub preview: Preview,
 	pub finder:  Option<Finder>,
 	pub search:  Option<JoinHandle<Result<()>>>,
+
+	// Dynamic panes v0.3 - anchor is the startup directory (fixed boundary)
+	pub anchor:    Option<Url>,
+	pub pane_urls: Vec<Url>,
 }
 
 impl Default for Tab {
@@ -48,6 +52,9 @@ impl Default for Tab {
 			preview: Default::default(),
 			finder:  Default::default(),
 			search:  Default::default(),
+
+			anchor:    None,
+			pane_urls: Vec::new(),
 		}
 	}
 }

@@ -13,6 +13,11 @@ impl From<CmdCow> for Opt {
 impl Tab {
 	#[yazi_codegen::command]
 	pub fn leave(&mut self, _: Opt) {
+		// Dynamic panes v0.3: Block leave when at anchor (fixed boundary)
+		if self.anchor.as_ref() == Some(self.cwd()) {
+			return;
+		}
+
 		self
 			.current
 			.hovered()

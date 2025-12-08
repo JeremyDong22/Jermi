@@ -27,7 +27,33 @@ function Header:cwd()
 		return ""
 	end
 
-	local s = ya.readable_path(tostring(self._current.cwd)) .. self:flags()
+	-- v2.0 - Show path relative to anchor (dynamic panes feature)
+	local cwd = tostring(self._current.cwd)
+	local anchor = cx.active.anchor
+	local s
+
+	if anchor then
+		local anchor_str = tostring(anchor):gsub("/$", "")
+		local cwd_clean = cwd:gsub("/$", "")
+		local anchor_name = anchor_str:match("([^/]+)$") or anchor_str
+
+		if cwd_clean == anchor_str then
+			-- At anchor: just show anchor folder name
+			s = anchor_name
+		elseif cwd_clean:sub(1, #anchor_str) == anchor_str then
+			-- Inside anchor: show anchor_name/relative/path
+			local relative = cwd_clean:sub(#anchor_str + 1):gsub("^/", "")
+			s = anchor_name .. "/" .. relative
+		else
+			-- Outside anchor (shouldn't happen): show full path
+			s = ya.readable_path(cwd)
+		end
+	else
+		-- No anchor: show readable path (fallback)
+		s = ya.readable_path(cwd)
+	end
+
+	s = s .. self:flags()
 	return ui.Span(ya.truncate(s, { max = max, rtl = true })):style(th.mgr.cwd)
 end
 
