@@ -91,6 +91,7 @@ impl<'a> Executor<'a> {
 
 		// Navigation
 		on!(ACTIVE, arrow);
+		on!(ACTIVE, anchor);
 		on!(ACTIVE, leave);
 		on!(ACTIVE, enter);
 		on!(ACTIVE, back);

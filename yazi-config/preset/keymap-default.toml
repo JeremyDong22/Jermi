@@ -39,6 +39,9 @@ keymap = [
 	{ on = "<Left>",  run = "leave", desc = "Back to the parent directory" },
 	{ on = "<Right>", run = "enter", desc = "Enter the child directory" },
 
+	{ on = "<S-Left>",  run = "anchor -1", desc = "Move anchor to parent (expand root)" },
+	{ on = "<S-Right>", run = "anchor 1",  desc = "Move anchor to current (shrink root)" },
+
 	{ on = "H", run = "back",    desc = "Back to previous directory" },
 	{ on = "L", run = "forward", desc = "Forward to next directory" },
 

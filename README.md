@@ -1,96 +1,108 @@
-<div align="center">
-  <sup>Special thanks to:</sup>
-  <br><br>
-  <a href="https://www.warp.dev/?utm_source=github&utm_medium=referral&utm_campaign=yazi" target="_blank">
-    <img alt="Warp sponsorship" width="300" src="https://github.com/user-attachments/assets/c7f141e7-9751-407d-bb0e-d6f2c487b34f">
-    <br>
-    <b>Warp, the intelligent terminal</b>
-    <br>
-    <sup>Yazi's AI-powered terminal of choice!<br>Available for macOS, Linux and Windows</sup>
-  </a>
-</div>
+# Jermi - Anchored File Manager
 
-<br>
+A fork of [Yazi](https://github.com/sxyazi/yazi) with **dynamic panes** and **anchor-based navigation** - designed for developers who want VSCode-like file browsing in the terminal.
 
-## Yazi - ⚡️ Blazing Fast Terminal File Manager
+## The Story
 
-Yazi (means "duck") is a terminal file manager written in Rust, based on non-blocking async I/O. It aims to provide an efficient, user-friendly, and customizable file management experience.
+As a developer entering the tmux + terminal world, I tried various file managers:
 
-💡 A new article explaining its internal workings: [Why is Yazi Fast?](https://yazi-rs.github.io/blog/why-is-yazi-fast)
+- **Ranger/lf** - The sliding window navigation felt disorienting. When exploring deep into a project, I'd often lose track of where I started.
+- **broot/btm** - Tree views are powerful but too rigid. Expanding/collapsing nodes felt clunky compared to just navigating.
+- **Yazi** - Fast, beautiful, async... but still had the sliding window problem.
 
-- 🚀 **Full Asynchronous Support**: All I/O operations are asynchronous, CPU tasks are spread across multiple threads, making the most of available resources.
-- 💪 **Powerful Async Task Scheduling and Management**: Provides real-time progress updates, task cancellation, and internal task priority assignment.
-- 🖼️ **Built-in Support for Multiple Image Protocols**: Also integrated with Überzug++ and Chafa, covering almost all terminals.
-- 🌟 **Built-in Code Highlighting and Image Decoding**: Combined with the pre-loading mechanism, greatly accelerates image and normal file loading.
-- 🔌 **Concurrent Plugin System**: UI plugins (rewriting most of the UI), functional plugins, custom previewer/preloader/spotter/fetcher; Just some pieces of Lua.
-- 📡 **Data Distribution Service**: Built on a client-server architecture (no additional server process required), integrated with a Lua-based publish-subscribe model, achieving cross-instance communication and state persistence.
-- 📦 **Package Manager**: Install plugins and themes with one command, keeping them up-to-date, or pin them to a specific version.
-- 🧰 Integration with ripgrep, fd, fzf, zoxide
-- 💫 Vim-like input/pick/confirm/which/notify component, auto-completion for cd paths
-- 🏷️ Multi-Tab Support, Cross-directory selection, Scrollable Preview (for videos, PDFs, archives, code, directories, etc.)
-- 🔄 Bulk Renaming, Archive Extraction, Visual Mode, File Chooser, [Git Integration](https://github.com/yazi-rs/plugins/tree/main/git.yazi), [Mount Manager](https://github.com/yazi-rs/plugins/tree/main/mount.yazi)
-- 🎨 Theme System, Mouse Support, Trash Bin, Custom Layouts, CSI u, OSC 52
-- ... and more!
+I wanted something that works like **VSCode's file explorer**:
+- Your project root stays visible on the left
+- You can navigate deep into folders without losing context
+- The view expands naturally as you go deeper
 
-https://github.com/sxyazi/yazi/assets/17523360/92ff23fa-0cd5-4f04-b387-894c12265cc7
+So I forked Yazi and created **Jermi** with these features.
 
-## Project status
+## Key Features
 
-Public beta, can be used as a daily driver.
+### Anchor-Based Navigation
+When you open Jermi, your starting directory becomes the **anchor** - a fixed left boundary that never scrolls away.
 
-Yazi is currently in heavy development, expect breaking changes.
+```
+Traditional sliding window:        Jermi anchored view:
 
-## Documentation
+src/  components/  Button.tsx      project/  src/  components/  Button.tsx
+  ↑                                    ↑
+  You lose the project root!           Anchor stays visible!
+```
 
-- Usage: https://yazi-rs.github.io/docs/installation
-- Features: https://yazi-rs.github.io/features
+### Dynamic Panes
+As you navigate deeper, panes are added dynamically:
+- **At anchor**: 2 panes (current + preview)
+- **1 level deep**: 3 panes (anchor + current + preview)
+- **2 levels deep**: 4 panes (anchor + parent + current + preview)
+- And so on...
 
-## Discussion
+### Shift+Arrow Anchor Control
+- **Shift+Left**: Expand root - move anchor to parent directory
+- **Shift+Right**: Shrink root - move anchor to current directory
 
-- Discord Server (English mainly): https://discord.gg/qfADduSdJu
-- Telegram Group (Chinese mainly): https://t.me/yazi_rs
+This lets you dynamically adjust your "project root" while browsing!
 
-## Image Preview
+## Installation
 
-| Platform                                                                     | Protocol                               | Support                                               |
-| ---------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------- |
-| [kitty](https://github.com/kovidgoyal/kitty) (>= 0.28.0)                     | [Kitty unicode placeholders][kgp]      | ✅ Built-in                                           |
-| [iTerm2](https://iterm2.com)                                                 | [Inline images protocol][iip]          | ✅ Built-in                                           |
-| [WezTerm](https://github.com/wez/wezterm)                                    | [Inline images protocol][iip]          | ✅ Built-in                                           |
-| [Konsole](https://invent.kde.org/utilities/konsole)                          | [Kitty old protocol][kgp-old]          | ✅ Built-in                                           |
-| [foot](https://codeberg.org/dnkl/foot)                                       | [Sixel graphics format][sixel]         | ✅ Built-in                                           |
-| [Ghostty](https://github.com/ghostty-org/ghostty)                            | [Kitty unicode placeholders][kgp]      | ✅ Built-in                                           |
-| [Windows Terminal](https://github.com/microsoft/terminal) (>= v1.22.10352.0) | [Sixel graphics format][sixel]         | ✅ Built-in                                           |
-| [st with Sixel patch](https://github.com/bakkeby/st-flexipatch)              | [Sixel graphics format][sixel]         | ✅ Built-in                                           |
-| [Warp](https://www.warp.dev)                                                 | [Inline images protocol][iip]          | ✅ Built-in                                           |
-| [Tabby](https://github.com/Eugeny/tabby)                                     | [Inline images protocol][iip]          | ✅ Built-in                                           |
-| [VSCode](https://github.com/microsoft/vscode)                                | [Inline images protocol][iip]          | ✅ Built-in                                           |
-| [Rio](https://github.com/raphamorim/rio)                                     | [Inline images protocol][iip]          | ❌ Rio doesn't correctly clear images [#709][rio-bug] |
-| [Black Box](https://gitlab.gnome.org/raggesilver/blackbox)                   | [Sixel graphics format][sixel]         | ✅ Built-in                                           |
-| [Hyper](https://github.com/vercel/hyper)                                     | [Inline images protocol][iip]          | ✅ Built-in                                           |
-| [Bobcat](https://github.com/ismail-yilmaz/Bobcat)                            | [Inline images protocol][iip]          | ✅ Built-in                                           |
-| X11 / Wayland                                                                | Window system protocol                 | ☑️ [Überzug++][ueberzug] required                     |
-| Fallback                                                                     | [ASCII art (Unicode block)][ascii-art] | ☑️ [Chafa][chafa] required                            |
+### From Source
 
-See https://yazi-rs.github.io/docs/image-preview for details.
+```bash
+git clone https://github.com/JermiDong/Jermi.git
+cd Jermi
+./install.sh
+```
 
-<!-- Protocols -->
+Make sure `~/.local/bin` is in your PATH:
+```bash
+export PATH="${HOME}/.local/bin:${PATH}"
+```
 
-[kgp]: https://sw.kovidgoyal.net/kitty/graphics-protocol/#unicode-placeholders
-[kgp-old]: https://github.com/sxyazi/yazi/blob/main/yazi-adapter/src/drivers/kgp_old.rs
-[iip]: https://iterm2.com/documentation-images.html
-[sixel]: https://www.vt100.net/docs/vt3xx-gp/chapter14.html
-[ascii-art]: https://en.wikipedia.org/wiki/ASCII_art
+Then run:
+```bash
+jermi
+```
 
-<!-- Dependencies -->
+### Requirements
 
-[ueberzug]: https://github.com/jstkdng/ueberzugpp
-[chafa]: https://hpjansson.org/chafa/
+- Rust toolchain (for building)
+- A terminal with true color support (recommended)
 
-<!-- Rio bug -->
+## Keybindings
 
-[rio-bug]: https://github.com/raphamorim/rio/issues/709
+| Key | Action |
+|-----|--------|
+| `h` / `Left` | Go to parent directory |
+| `l` / `Right` / `Enter` | Enter directory / Open file |
+| `j` / `Down` | Move cursor down |
+| `k` / `Up` | Move cursor up |
+| `Shift+Left` | Expand anchor (move to parent) |
+| `Shift+Right` | Shrink anchor (move to current) |
+| `q` | Quit |
+
+All other Yazi keybindings work as expected. See [Yazi documentation](https://yazi-rs.github.io/docs/quick-start) for more.
+
+## How It Works
+
+1. **Anchor**: The startup directory is saved as the "anchor" - it defines the leftmost visible boundary
+2. **Leave blocked at anchor**: When you're at the anchor, pressing `h`/`Left` does nothing (you can't go "above" your project root)
+3. **Dynamic pane_urls**: As you `Enter` directories, each path is tracked in `pane_urls` and rendered as a pane
+4. **Shift+Arrow control**: Dynamically move the anchor to explore different scopes
+
+## Based on Yazi
+
+Jermi inherits all of Yazi's amazing features:
+- Blazing fast async I/O
+- Built-in image preview (Kitty, iTerm2, Sixel, etc.)
+- Lua plugin system
+- Syntax highlighting
+- And much more...
 
 ## License
 
-Yazi is MIT-licensed. For more information check the [LICENSE](LICENSE) file.
+MIT License - Same as Yazi.
+
+## Credits
+
+- [Yazi](https://github.com/sxyazi/yazi) - The incredible terminal file manager this is forked from
+- [sxyazi](https://github.com/sxyazi) - Creator of Yazi

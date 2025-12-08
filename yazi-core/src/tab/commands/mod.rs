@@ -1,4 +1,5 @@
 yazi_macro::mod_flat!(
+	anchor
 	arrow
 	back
 	cd
