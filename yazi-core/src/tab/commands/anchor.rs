@@ -1,7 +1,7 @@
 // Anchor manipulation command
-// v1.2 - Fixed: use ensure() instead of remove_or() to keep folders in history
+// v1.5 - Use AppProxy::reflow() to update LAYOUT before peek (no hardcoded delay)
 use yazi_macro::render;
-use yazi_proxy::MgrProxy;
+use yazi_proxy::{AppProxy, MgrProxy};
 use yazi_shared::event::{CmdCow, Data};
 
 use crate::tab::Tab;
@@ -73,9 +73,13 @@ impl Tab {
 			self.parent = Some(self.history.remove_or(&parent));
 		}
 
-		// Trigger folder refresh to load contents
+		// Reset preview to clear old image before layout change
+		self.preview.reset();
+
+		// Trigger folder refresh and reflow to update LAYOUT
 		MgrProxy::refresh();
 		render!();
+		AppProxy::reflow();
 	}
 
 	fn anchor_right(&mut self) {
@@ -96,8 +100,12 @@ impl Tab {
 		// At anchor, no parent pane
 		self.parent = None;
 
-		// Trigger refresh for consistency
+		// Reset preview to clear old image before layout change
+		self.preview.reset();
+
+		// Trigger folder refresh and reflow to update LAYOUT
 		MgrProxy::refresh();
 		render!();
+		AppProxy::reflow();
 	}
 }

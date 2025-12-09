@@ -43,6 +43,7 @@ impl<'a> Executor<'a> {
 		on!(update_notify);
 		on!(update_progress);
 		on!(resize);
+		on!(reflow);
 		on!(stop);
 		on!(resume);
 	}

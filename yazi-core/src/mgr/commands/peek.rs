@@ -1,3 +1,6 @@
+// Peek command - preview file/folder content
+// v1.0 - Added image_hide when force=true for layout resize
+use yazi_adapter::ADAPTOR;
 use yazi_proxy::HIDER;
 use yazi_shared::{event::{CmdCow, Data}, url::Url};
 
@@ -56,6 +59,11 @@ impl Mgr {
 			} else {
 				preview.skip = skip;
 			}
+		}
+
+		// Force mode (layout resize): hide old image first to prevent overlap
+		if opt.force {
+			ADAPTOR.get().image_hide().ok();
 		}
 
 		if hovered.is_dir() {

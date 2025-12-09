@@ -1,3 +1,5 @@
+// cd command - directory navigation with dynamic panes support
+// v0.5 - Direct preview.reset() when pane count changes for proper image clearing
 use std::{mem, time::Duration};
 
 use tokio::pin;
@@ -91,6 +93,9 @@ impl Tab {
 		}
 
 		// Dynamic panes v0.3: Update pane_urls based on navigation source
+		// Track if layout will change (for preview reset)
+		let prev_pane_count = self.pane_urls.len();
+
 		match opt.source {
 			OptSource::Enter => {
 				// Enter: Push the target URL to pane_urls
@@ -114,6 +119,11 @@ impl Tab {
 				// Cd, Reveal, Forward, Back: Reset pane_urls
 				self.pane_urls.clear();
 			}
+		}
+
+		// Reset preview if layout changed (pane count changed)
+		if prev_pane_count != self.pane_urls.len() {
+			self.preview.reset();
 		}
 
 		Pubsub::pub_from_cd(self.id, self.cwd());

@@ -43,6 +43,9 @@ As you navigate deeper, panes are added dynamically:
 
 This lets you dynamically adjust your "project root" while browsing!
 
+### Auto-Resizing Preview
+When pane layout changes (entering/leaving directories, adjusting anchor), the preview automatically resizes to fit the new layout. Image previews seamlessly adapt to the available space - no manual refresh needed.
+
 ## Installation
 
 ### From Source

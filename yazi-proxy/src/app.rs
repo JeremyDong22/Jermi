@@ -55,4 +55,9 @@ impl AppProxy {
 	pub fn plugin_do(opt: PluginOpt) {
 		emit!(Call(Cmd::new("app:plugin_do").with_any("opt", opt)));
 	}
+
+	#[inline]
+	pub fn reflow() {
+		emit!(Call(Cmd::new("app:reflow")));
+	}
 }

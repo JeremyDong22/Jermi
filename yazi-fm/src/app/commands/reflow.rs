@@ -1,8 +1,12 @@
+// Reflow command - handles layout recalculation
+// v1.1 - Added image_hide before peek for proper image clearing on resize
 use mlua::Value;
 use ratatui::layout::Position;
 use tracing::error;
+use yazi_adapter::ADAPTOR;
 use yazi_config::LAYOUT;
 use yazi_macro::render;
+use yazi_proxy::MgrProxy;
 use yazi_shared::event::CmdCow;
 
 use crate::{Root, app::App, lives::Lives};
@@ -43,9 +47,13 @@ impl App {
 			Ok(())
 		});
 
-		if layout != LAYOUT.get() {
+		let old_layout = LAYOUT.get();
+		if layout != old_layout {
 			LAYOUT.set(layout);
 			render!();
+			// Always refresh preview when layout changes (dynamic panes resize)
+			ADAPTOR.get().image_hide().ok();
+			MgrProxy::peek(true);
 		}
 
 		if let Err(e) = result {
