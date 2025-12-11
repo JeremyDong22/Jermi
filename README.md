@@ -48,10 +48,30 @@ When pane layout changes (entering/leaving directories, adjusting anchor), the p
 
 ## Installation
 
+### Pre-built Binary (Linux x86_64)
+
+Download the latest release:
+
+```bash
+# Download and extract
+wget https://github.com/JeremyDong22/Jermi/releases/download/v1.0.0/jermi-x86_64-unknown-linux-gnu.zip
+unzip jermi-x86_64-unknown-linux-gnu.zip
+cd jermi-x86_64-unknown-linux-gnu
+
+# Run directly
+./yazi
+
+# Or install system-wide
+sudo cp yazi ya /usr/local/bin/
+sudo cp completions/* /usr/share/bash-completion/completions/
+```
+
+You can also run it as `jermi` if installed.
+
 ### From Source
 
 ```bash
-git clone https://github.com/JermiDong/Jermi.git
+git clone https://github.com/JeremyDong22/Jermi.git
 cd Jermi
 ./install.sh
 ```
@@ -68,8 +88,8 @@ jermi
 
 ### Requirements
 
-- Rust toolchain (for building)
-- A terminal with true color support (recommended)
+- For pre-built binary: A terminal with true color support (recommended)
+- For building from source: Rust toolchain + terminal with true color support
 
 ## Keybindings
 
