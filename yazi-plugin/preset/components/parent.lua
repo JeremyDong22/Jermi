@@ -30,15 +30,22 @@ function Parent:redraw()
 end
 
 -- Mouse events
+-- v0.2 - Fixed: use leave + arrow instead of reveal to preserve pane_urls chain
 function Parent:click(event, up)
 	if up or not event.is_left then
 		return
 	end
 
+	local f = self._folder
 	local y = event.y - self._area.y + 1
-	local window = self._folder and self._folder.window or {}
-	if window[y] then
-		ya.emit("reveal", { window[y].url })
+	local window = f and f.window or {}
+	if window[y] and f.hovered then
+		-- Compute delta before leave; after leave, hover stays at same position
+		local delta = y + f.offset - f.hovered.idx
+		ya.emit("leave", {})
+		if delta ~= 0 then
+			ya.emit("arrow", { delta })
+		end
 	else
 		ya.emit("leave", {})
 	end

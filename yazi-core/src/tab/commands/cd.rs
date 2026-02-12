@@ -21,8 +21,9 @@ struct Opt {
 
 impl From<CmdCow> for Opt {
 	fn from(mut c: CmdCow) -> Self {
+		let source = if c.bool("pane-nav") { OptSource::PaneNav } else { OptSource::Cd };
 		Self {
-			source: OptSource::Cd,
+			source,
 			interactive: c.bool("interactive"),
 			..Self::from(c.take_first_url().unwrap_or_default())
 		}
@@ -115,6 +116,23 @@ impl Tab {
 					}
 				}
 			}
+			OptSource::PaneNav => {
+				// Pane-aware navigation: truncate pane_urls to target's parent, then push target
+				if let Some(parent_url) = opt.target.parent_url() {
+					if let Some(pos) = self.pane_urls.iter().position(|u| *u == parent_url) {
+						self.pane_urls.truncate(pos + 1);
+						self.pane_urls.push(opt.target.clone());
+					} else if self.anchor.as_ref() == Some(&parent_url) && self.pane_urls.is_empty() {
+						// Clicking from anchor level in 2-pane mode
+						self.pane_urls.push(parent_url);
+						self.pane_urls.push(opt.target.clone());
+					} else {
+						self.pane_urls.clear();
+					}
+				} else {
+					self.pane_urls.clear();
+				}
+			}
 			_ => {
 				// Cd, Reveal, Forward, Back: Reset pane_urls
 				self.pane_urls.clear();
@@ -174,6 +192,7 @@ pub(super) enum OptSource {
 	Leave,
 	Forward,
 	Back,
+	PaneNav,
 }
 
 impl OptSource {

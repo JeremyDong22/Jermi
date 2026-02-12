@@ -7,6 +7,7 @@ use crate::tab::Tab;
 struct Opt {
 	target:   Url,
 	no_dummy: bool,
+	pane_nav: bool,
 }
 
 impl From<CmdCow> for Opt {
@@ -16,11 +17,11 @@ impl From<CmdCow> for Opt {
 			target = Url::from(expand_path(&target));
 		}
 
-		Self { target, no_dummy: c.bool("no-dummy") }
+		Self { target, no_dummy: c.bool("no-dummy"), pane_nav: c.bool("pane-nav") }
 	}
 }
 impl From<Url> for Opt {
-	fn from(target: Url) -> Self { Self { target, no_dummy: false } }
+	fn from(target: Url) -> Self { Self { target, no_dummy: false, pane_nav: false } }
 }
 
 impl Tab {
@@ -30,7 +31,9 @@ impl Tab {
 			return;
 		};
 
-		self.cd((parent.clone(), super::cd::OptSource::Reveal));
+		// Use PaneNav source when pane-nav flag is set to preserve pane chain
+		let source = if opt.pane_nav { super::cd::OptSource::PaneNav } else { super::cd::OptSource::Reveal };
+		self.cd((parent.clone(), source));
 		self.current.hover(child.as_urn());
 
 		if !opt.no_dummy && self.hovered().is_none_or(|f| &child != f.urn()) {

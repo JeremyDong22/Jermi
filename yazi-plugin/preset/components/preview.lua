@@ -15,18 +15,13 @@ function Preview:reflow() return { self } end
 function Preview:redraw() return {} end
 
 -- Mouse events
+-- v0.2 - Fixed: use enter instead of reveal to preserve pane_urls chain
 function Preview:click(event, up)
 	if up or not event.is_left then
 		return
 	end
 
-	local y = event.y - self._area.y + 1
-	local window = self._folder and self._folder.window or {}
-	if window[y] then
-		ya.emit("reveal", { window[y].url })
-	else
-		ya.emit("enter", {})
-	end
+	ya.emit("enter", {})
 end
 
 function Preview:scroll(event, step) ya.emit("seek", { step }) end

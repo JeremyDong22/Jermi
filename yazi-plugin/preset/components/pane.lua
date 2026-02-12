@@ -1,5 +1,5 @@
 -- Pane component for dynamic panes
--- v0.2 - Fixed: click navigates with cd instead of reveal to preserve pane structure
+-- v0.3 - Fixed: click uses pane-nav flag to preserve pane_urls chain
 Pane = {
 	_id = "pane",
 }
@@ -45,11 +45,9 @@ function Pane:click(event, up)
 	if window[y] then
 		local file = window[y]
 		if file.cha.is_dir then
-			-- Directory: use cd to navigate (preserves anchor context)
-			ya.emit("cd", { file.url })
+			ya.emit("cd", { file.url, ["pane-nav"] = true })
 		else
-			-- File: use reveal to show it
-			ya.emit("reveal", { file.url })
+			ya.emit("reveal", { file.url, ["pane-nav"] = true })
 		end
 	end
 end
