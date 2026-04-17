@@ -45,28 +45,55 @@ This lets you dynamically adjust your "project root" while browsing!
 
 ## Installation
 
-### From Source
+### Option 1: Download Prebuilt Binary (Recommended)
+
+Grab the latest nightly from the [Releases page](https://github.com/JeremyDong22/Jermi/releases/tag/nightly):
+
+| Platform            | File                                   |
+| ------------------- | -------------------------------------- |
+| macOS (Apple Silicon) | `yazi-aarch64-apple-darwin.zip`      |
+| macOS (Intel)       | `yazi-x86_64-apple-darwin.zip`         |
+| Linux (x86_64)      | `yazi-x86_64-unknown-linux-gnu.zip`    |
+| Linux (aarch64)     | `yazi-aarch64-unknown-linux-gnu.zip`   |
+| Linux (musl x86_64) | `yazi-x86_64-unknown-linux-musl.zip`   |
+| Windows (x86_64)    | `yazi-x86_64-pc-windows-msvc.zip`      |
 
 ```bash
-git clone https://github.com/JermiDong/Jermi.git
+# macOS / Linux example
+unzip yazi-aarch64-apple-darwin.zip
+mkdir -p ~/.local/bin
+cp yazi-aarch64-apple-darwin/yazi ~/.local/bin/jermi
+chmod +x ~/.local/bin/jermi
+
+# macOS Apple Silicon only — clear the iCloud/quarantine xattr and re-sign
+xattr -c ~/.local/bin/jermi && codesign --force --sign - ~/.local/bin/jermi
+```
+
+Then make sure `~/.local/bin` is in your `PATH` and run `jermi`.
+
+### Option 2: From Source
+
+Requires Rust toolchain.
+
+```bash
+git clone https://github.com/JeremyDong22/Jermi.git
 cd Jermi
 ./install.sh
 ```
 
-Make sure `~/.local/bin` is in your PATH:
+`install.sh` copies the binary to `~/.local/bin/jermi` and handles the
+xattr/codesign step automatically on macOS.
+
+Then:
 ```bash
 export PATH="${HOME}/.local/bin:${PATH}"
-```
-
-Then run:
-```bash
 jermi
 ```
 
 ### Requirements
 
-- Rust toolchain (for building)
 - A terminal with true color support (recommended)
+- Rust toolchain **only if building from source**
 
 ## Keybindings
 
