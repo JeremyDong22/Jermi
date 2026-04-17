@@ -20,7 +20,7 @@ function Tab:layout()
 	if pane_count > 0 then
 		-- Calculate constraints: each pane gets equal ratio, preview gets same
 		local constraints = {}
-		local total_parts = pane_count + 1  -- panes + preview
+		local total_parts = pane_count + 1 -- panes + preview
 
 		for i = 1, pane_count do
 			constraints[#constraints + 1] = ui.Constraint.Ratio(1, total_parts)
@@ -28,10 +28,7 @@ function Tab:layout()
 		-- Preview pane (rightmost)
 		constraints[#constraints + 1] = ui.Constraint.Ratio(1, total_parts)
 
-		self._chunks = ui.Layout()
-			:direction(ui.Layout.HORIZONTAL)
-			:constraints(constraints)
-			:split(self._area)
+		self._chunks = ui.Layout():direction(ui.Layout.HORIZONTAL):constraints(constraints):split(self._area)
 
 		self._pane_urls = pane_urls
 		self._dynamic_mode = true

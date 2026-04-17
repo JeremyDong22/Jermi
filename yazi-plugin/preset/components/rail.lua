@@ -8,7 +8,7 @@ function Rail:new(chunks, tab, pane_folders)
 	local me = setmetatable({
 		_chunks = chunks,
 		_tab = tab,
-		_pane_folders = pane_folders or {},  -- Optional: folders for each pane (for markers)
+		_pane_folders = pane_folders or {}, -- Optional: folders for each pane (for markers)
 	}, { __index = self })
 	me:build()
 	return me
@@ -23,10 +23,8 @@ function Rail:build()
 	-- For N chunks, we need N-1 borders
 	for i = 1, chunk_count - 1 do
 		-- Border on right edge of chunk[i] (separates chunk[i] from chunk[i+1])
-		self._base[#self._base + 1] = ui.Bar(ui.Edge.RIGHT)
-			:area(self._chunks[i])
-			:symbol(th.mgr.border_symbol)
-			:style(th.mgr.border_style)
+		self._base[#self._base + 1] =
+			ui.Bar(ui.Edge.RIGHT):area(self._chunks[i]):symbol(th.mgr.border_symbol):style(th.mgr.border_style)
 	end
 
 	-- Create markers for panes that have folders
