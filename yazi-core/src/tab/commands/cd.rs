@@ -61,9 +61,6 @@ impl Tab {
 			return;
 		}
 
-		// Dynamic panes v0.4: Save current cwd BEFORE any changes
-		let prev_cwd = self.cwd().clone();
-
 		// Take parent to history
 		if let Some(rep) = self.parent.take() {
 			self.history.insert(rep.url.to_owned(), rep);
@@ -90,31 +87,34 @@ impl Tab {
 			self.backstack.push(&opt.target);
 		}
 
-		// Dynamic panes v0.3: Update pane_urls based on navigation source
-		match opt.source {
-			OptSource::Enter => {
-				// Enter: Push the target URL to pane_urls
-				if self.pane_urls.is_empty() {
-					// First enter: prev_cwd (anchor) + target
-					self.pane_urls.push(prev_cwd);
-				}
-				self.pane_urls.push(opt.target.clone());
-			}
-			OptSource::Leave => {
-				// Leave: Pop from pane_urls, keep at least anchor
-				if self.pane_urls.len() > 1 {
-					self.pane_urls.pop();
-					// If only anchor left, clear to return to 2-pane mode
-					if self.pane_urls.len() == 1 {
-						self.pane_urls.clear();
+		// Dynamic panes v0.4: Derive pane_urls from anchor + target every time.
+		// This keeps the breadcrumb consistent for all navigation sources
+		// (Cd, Reveal, Forward, Back, Enter, Leave) — including mouse clicks
+		// that land on a sibling or ancestor in any pane.
+		self.pane_urls = match self.anchor.as_ref() {
+			Some(a) if opt.target != *a => {
+				let mut chain = Vec::new();
+				let mut cursor = Some(opt.target.clone());
+				let mut reached = false;
+				while let Some(u) = cursor {
+					let is_anchor = &u == a;
+					chain.push(u.clone());
+					if is_anchor {
+						reached = true;
+						break;
 					}
+					cursor = u.parent_url();
+				}
+				if reached {
+					chain.reverse();
+					chain
+				} else {
+					// Target not under anchor: exit dynamic mode
+					Vec::new()
 				}
 			}
-			_ => {
-				// Cd, Reveal, Forward, Back: Reset pane_urls
-				self.pane_urls.clear();
-			}
-		}
+			_ => Vec::new(),
+		};
 
 		Pubsub::pub_from_cd(self.id, self.cwd());
 		self.hover(None);
