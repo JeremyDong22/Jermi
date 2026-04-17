@@ -9,22 +9,23 @@ Jermi is a fork of [Yazi](https://github.com/sxyazi/yazi) terminal file manager 
 ### Anchor System
 - `anchor`: The startup directory, acts as fixed left boundary
 - `pane_urls`: Vec of URLs tracking navigation path from anchor to current
+- **`pane_urls` is auto-derived** from `anchor` + `target` on every `cd` call (v0.4, `cd.rs`). Don't push/pop it manually — change `cwd` and the chain rebuilds itself as `[anchor, ..., target]` if target is under anchor, or `[]` otherwise.
 - When at anchor: 2 panes (current + preview)
 - When navigated away: N panes (anchor...parents...current + preview)
 
 ### Navigation Behavior
-- `Enter` into directory: pushes URL to `pane_urls`, adds pane
-- `Leave` (h/Left): pops from `pane_urls`, removes pane
+- `Enter` into directory → `cd(Enter)` → chain extends by 1
+- `Leave` (h/Left) → `cd(Leave)` → chain shrinks by 1 (cleared if back at anchor)
 - `Leave` at anchor: blocked (can't go above project root)
 - `Shift+Left`: expand anchor to parent
 - `Shift+Right`: shrink anchor to current directory
-- `cd`/`reveal`: resets `pane_urls` (jumps break the chain)
+- `cd` / `reveal` / mouse click: chain auto-rebuilt; **stays intact** as long as target is inside anchor subtree; only cleared when jumping outside
 
 ## Architecture
 
 ### Rust Core (`yazi-core/src/tab/`)
 - `tab.rs`: Tab struct with `anchor: Option<Url>` and `pane_urls: Vec<Url>`
-- `commands/cd.rs`: Navigation logic, updates `pane_urls` based on `OptSource`
+- `commands/cd.rs`: Navigation logic; auto-derives `pane_urls` from anchor + target
 - `commands/leave.rs`: Blocks at anchor
 - `commands/anchor.rs`: Shift+Arrow anchor movement
 - `commands/enter.rs`: Pushes to `pane_urls`
@@ -91,4 +92,10 @@ jermi
 1. **Command not working?** Check if registered in `executor.rs`
 2. **Pane blank?** Folder not loaded - ensure `refresh.rs` triggers for `pane_urls`
 3. **Padding inconsistent?** All panes should use `pad(ui.Pad.x(1))`
-4. **Mouse click resets panes?** Avoid `reveal` command, use `cd` for directories
+4. **Mouse click on directory in any pane?** Always use `cd`, not `reveal`. Applies to `pane.lua`, `parent.lua`. `reveal` is for files only.
+5. **Don't mutate `pane_urls` manually** — it's derived in `cd.rs`. If you're tempted to push/pop, change `cwd` instead.
+6. **Build blocked by `yazi-* 2/` empty dirs?** iCloud sync artifacts from Desktop being in iCloud Drive. Clean with `rm -rf *" 2"*` (they're all untracked). Long-term: move project out of `~/Desktop/` and `~/Documents/`.
+7. **`zsh: killed jermi` after fresh `cp`?** Apple Silicon AMFI kills binaries with `com.apple.provenance` xattr (set when copying from iCloud-synced paths). After each install:
+   ```bash
+   xattr -c ~/.local/bin/jermi && codesign --force --sign - ~/.local/bin/jermi
+   ```

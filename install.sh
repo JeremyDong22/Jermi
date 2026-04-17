@@ -15,6 +15,14 @@ mkdir -p "${INSTALL_DIR}"
 cp target/release/yazi "${INSTALL_DIR}/${BINARY_NAME}"
 chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
 
+# Clear com.apple.provenance xattr and re-adhoc-sign.
+# Required when the repo lives in an iCloud-synced path (~/Desktop, ~/Documents)
+# on Apple Silicon — otherwise AMFI kills the binary on launch.
+if [[ "$(uname)" == "Darwin" ]]; then
+	xattr -c "${INSTALL_DIR}/${BINARY_NAME}" 2>/dev/null || true
+	codesign --force --sign - "${INSTALL_DIR}/${BINARY_NAME}" 2>/dev/null || true
+fi
+
 echo ""
 echo "Installation complete!"
 echo ""
