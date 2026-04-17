@@ -1,3 +1,6 @@
+-- Parent component for the parent pane (3-column mode)
+-- v0.2 - Fixed: directory click uses cd instead of reveal to avoid stale preview
+--        after navigating out of a sibling via file-reveal in preview pane
 Parent = {
 	_id = "parent",
 }
@@ -38,7 +41,14 @@ function Parent:click(event, up)
 	local y = event.y - self._area.y + 1
 	local window = self._folder and self._folder.window or {}
 	if window[y] then
-		ya.emit("reveal", { window[y].url })
+		local file = window[y]
+		if file.cha.is_dir then
+			-- Directory: cd navigates into it (rebuilds preview cleanly)
+			ya.emit("cd", { file.url })
+		else
+			-- File: reveal shows it in the parent's context
+			ya.emit("reveal", { file.url })
+		end
 	else
 		ya.emit("leave", {})
 	end
