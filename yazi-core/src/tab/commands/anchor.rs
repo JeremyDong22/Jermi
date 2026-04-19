@@ -1,9 +1,13 @@
 // Anchor manipulation command
-// v1.1 - Shift+Left/Right to move anchor position
-// Fixed: Added MgrProxy::refresh() to load folders properly
+// v1.3 - Shift+Left/Right to move anchor position
+// Fixed: anchor_left derives pane_urls from new anchor + cwd (matches
+//        cd.rs logic) AND actually keeps earlier-pane folders in
+//        history. `history.remove_or()` removes the entry; the previous
+//        code discarded the returned folder, leaving tab:history(url)
+//        returning nil → blank panes.
 use yazi_macro::render;
 use yazi_proxy::MgrProxy;
-use yazi_shared::event::{CmdCow, Data};
+use yazi_shared::{event::{CmdCow, Data}, url::Url};
 
 use crate::tab::Tab;
 
@@ -42,36 +46,58 @@ impl Tab {
 		}
 	}
 
-	fn anchor_left(&mut self, current_anchor: yazi_shared::url::Url) {
+	fn anchor_left(&mut self, current_anchor: Url) {
 		// Get parent of current anchor
 		let Some(new_anchor) = current_anchor.parent_url() else {
-			return;  // Already at filesystem root
+			return; // Already at filesystem root
 		};
 
 		// Update anchor to parent
 		self.anchor = Some(new_anchor.clone());
 
-		// Ensure new anchor folder is in history (triggers loading)
-		let _ = self.history.remove_or(&new_anchor);
-
-		// Rebuild pane_urls: insert old anchor at the beginning
-		if self.pane_urls.is_empty() {
-			// Currently at anchor, now we have 1 pane showing old anchor
-			self.pane_urls.push(current_anchor.clone());
-			self.pane_urls.push(self.cwd().clone());
+		// Rebuild pane_urls by walking up from cwd to the new anchor,
+		// mirroring the derivation logic in cd.rs so the chain is always
+		// [new_anchor, ..., cwd] without duplicates.
+		let mut chain = Vec::new();
+		let mut cursor = Some(self.cwd().clone());
+		let mut reached = false;
+		while let Some(u) = cursor {
+			let is_anchor = u == new_anchor;
+			chain.push(u.clone());
+			if is_anchor {
+				reached = true;
+				break;
+			}
+			cursor = u.parent_url();
+		}
+		self.pane_urls = if reached && chain.len() > 1 {
+			chain.reverse();
+			chain
 		} else {
-			// Already have panes, insert old anchor at beginning
-			self.pane_urls.insert(0, current_anchor.clone());
-		}
+			Vec::new()
+		};
 
-		// Ensure all pane folders are in history
-		for url in &self.pane_urls {
-			let _ = self.history.remove_or(url);
-		}
-
-		// Need to update parent pane since we changed the view
+		// Update parent pane since view composition changed
 		if let Some(parent) = self.cwd().parent_url() {
 			self.parent = Some(self.history.remove_or(&parent));
+		}
+
+		// Earlier panes (everything except current and parent) must live in
+		// `history` so Lua's `tab:history(url)` can render them. `remove_or`
+		// either takes the existing folder out or creates a fresh empty one
+		// — either way we must put it BACK into history.
+		let parent_url = self.parent.as_ref().map(|f| f.url.clone());
+		let cwd = self.cwd().clone();
+		let urls: Vec<Url> = self.pane_urls.clone();
+		for url in urls {
+			if url == cwd {
+				continue;
+			}
+			if parent_url.as_ref() == Some(&url) {
+				continue;
+			}
+			let folder = self.history.remove_or(&url);
+			self.history.insert(url, folder);
 		}
 
 		// Trigger folder refresh to load contents
