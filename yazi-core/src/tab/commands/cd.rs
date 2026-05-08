@@ -116,6 +116,25 @@ impl Tab {
 			_ => Vec::new(),
 		};
 
+		// Earlier panes (everything except current and parent) must live in
+		// `history` so Lua's `tab:history(url)` can render them and so
+		// `refresh.rs` will trigger their folder load. `remove_or` either
+		// takes the existing folder out or creates a fresh empty one — either
+		// way we must put it BACK into history. Mirrors anchor.rs.
+		let parent_url = self.parent.as_ref().map(|f| f.url.clone());
+		let cwd = self.cwd().clone();
+		let urls: Vec<Url> = self.pane_urls.clone();
+		for url in urls {
+			if url == cwd {
+				continue;
+			}
+			if parent_url.as_ref() == Some(&url) {
+				continue;
+			}
+			let folder = self.history.remove_or(&url);
+			self.history.insert(url, folder);
+		}
+
 		Pubsub::pub_from_cd(self.id, self.cwd());
 		self.hover(None);
 
