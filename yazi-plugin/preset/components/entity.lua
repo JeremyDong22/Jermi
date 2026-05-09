@@ -108,6 +108,22 @@ function Entity:ellipsis(max)
 	end
 end
 
+-- Mouse events
+-- Mirrors upstream PR #2925: clicking a file in the current pane reveals it
+-- (cd to parent + place cursor + refresh preview) in one shot. Previously
+-- Current:click only nudged the cursor via `arrow`, which left the preview
+-- blank when the mime fetcher hadn't caught up yet.
+function Entity:click(event, up)
+	if up or event.is_middle then
+		return
+	end
+
+	ya.emit("reveal", { self._file.url })
+	if event.is_right then
+		ya.emit("open", {})
+	end
+end
+
 -- Children
 function Entity:children_add(fn, order)
 	self._inc = self._inc + 1

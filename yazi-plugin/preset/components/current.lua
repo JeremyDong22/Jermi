@@ -50,20 +50,14 @@ function Current:redraw()
 end
 
 -- Mouse events
+-- v0.4: Delegate to Entity:click (matches upstream PR #2925). Click now emits
+-- `reveal` instead of `arrow`, which does cd + cursor + preview refresh in one
+-- shot — fixes the case where clicking a file in a freshly cd'd folder left
+-- the preview blank because peek raced the mime fetcher.
 function Current:click(event, up)
-	if up or event.is_middle then
-		return
-	end
-
-	local f = self._folder
 	local y = event.y - self._area.y + 1
-	if y > #f.window or not f.hovered then
-		return
-	end
-
-	ya.emit("arrow", { y + f.offset - f.hovered.idx })
-	if event.is_right then
-		ya.emit("open", {})
+	if self._folder.window[y] then
+		Entity:new(self._folder.window[y]):click(event, up)
 	end
 end
 
