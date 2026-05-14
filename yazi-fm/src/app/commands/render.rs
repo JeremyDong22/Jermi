@@ -2,6 +2,7 @@ use std::sync::atomic::{AtomicU8, Ordering};
 
 use crossterm::{cursor::{MoveTo, SetCursorStyle, Show}, execute, queue, terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate}};
 use ratatui::{CompletedFrame, backend::{Backend, CrosstermBackend}, buffer::Buffer, layout::Position};
+use yazi_config::LAYOUT;
 use yazi_plugin::elements::COLLISION;
 use yazi_shared::event::NEED_RENDER;
 use yazi_term::tty::TTY;
@@ -17,6 +18,13 @@ impl App {
 		let _guard = scopeguard::guard(self.cx.cursor(), |c| Self::routine(false, c));
 
 		let collision = COLLISION.swap(false, Ordering::Relaxed);
+		// Capture LAYOUT before Lua redraw runs (Lua redraw updates LAYOUT.current/preview/progress
+		// based on the actual chunk areas of the current frame). If LAYOUT changes between frames
+		// — e.g., Jermi's dynamic panes transition from 2 chunks (anchor mode) to N+1 chunks
+		// (dynamic mode) — any preview lock captured before the layout shift carries a stale
+		// `lock.area`, and `mgr::Preview::render` skips drawing it on the area-mismatch check.
+		// Re-peek with `force=true` so the previewer regenerates the lock against the new area.
+		let layout_before = LAYOUT.get();
 		let frame = term
 			.draw(|f| {
 				_ = Lives::scope(&self.cx, || Ok(f.render_widget(Root::new(&self.cx), f.area())));
@@ -32,6 +40,9 @@ impl App {
 
 		// Reload preview if collision is resolved
 		if collision && !COLLISION.load(Ordering::Relaxed) {
+			self.cx.mgr.peek(true);
+		} else if layout_before != LAYOUT.get() {
+			// Layout changed during this frame's redraw: previous peek captured stale area.
 			self.cx.mgr.peek(true);
 		}
 	}

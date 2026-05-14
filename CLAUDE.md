@@ -94,8 +94,9 @@ jermi
 3. **Padding inconsistent?** All panes should use `pad(ui.Pad.x(1))`
 4. **Mouse click on directory in any pane?** Always use `cd`, not `reveal`. Applies to `pane.lua`, `parent.lua`. `reveal` is for files only.
 5. **Don't mutate `pane_urls` manually** — it's derived in `cd.rs`. If you're tempted to push/pop, change `cwd` instead.
-6. **Build blocked by `yazi-* 2/` empty dirs?** iCloud sync artifacts from Desktop being in iCloud Drive. Clean with `rm -rf *" 2"*` (they're all untracked). Long-term: move project out of `~/Desktop/` and `~/Documents/`.
-7. **`zsh: killed jermi` after fresh `cp`?** Apple Silicon AMFI kills binaries with `com.apple.provenance` xattr (set when copying from iCloud-synced paths). After each install:
+6. **Preview pane empty after entering a folder?** When pane count changes (anchor → dynamic, etc.), `LAYOUT.preview` gets a new rect during Lua redraw, but any peek that ran *before* the redraw captured the old rect into `lock.area`. `mgr::Preview::render` then skips drawing on the area mismatch. Fix lives in `yazi-fm/src/app/commands/render.rs`: capture `LAYOUT` before `term.draw` and re-peek with `force=true` if it changed during the frame.
+7. **Build blocked by `yazi-* 2/` empty dirs?** iCloud sync artifacts from Desktop being in iCloud Drive. Clean with `rm -rf *" 2"*` (they're all untracked). Long-term: move project out of `~/Desktop/` and `~/Documents/`.
+8. **`zsh: killed jermi` after fresh `cp`?** Apple Silicon AMFI kills binaries with `com.apple.provenance` xattr (set when copying from iCloud-synced paths). After each install:
    ```bash
    xattr -c ~/.local/bin/jermi && codesign --force --sign - ~/.local/bin/jermi
    ```
