@@ -36,26 +36,35 @@ src/  components/  Button.tsx        project/  src/  components/  Button.tsx
 
 ---
 
-## Key Features
+## The Core Idea: Anchor
 
-### 1. Anchor‑based navigation
-Your starting directory becomes the **anchor** — a fixed left boundary that never scrolls away.
+Every other terminal file manager treats your view as a **sliding window** over the filesystem — go three folders deep, and your project root has scrolled off the left edge. You lose context. You forget where you started.
 
-### 2. Dynamic panes
-Panes appear *as you go deeper*, not in a fixed slot count.
+Jermi's one big insight: **pin the starting directory.**
 
-| Where you are        | Panes shown                                |
-| -------------------- | ------------------------------------------ |
-| At anchor            | 2 panes (current + preview)                |
-| 1 level deep         | 3 panes (anchor + current + preview)       |
-| 2 levels deep        | 4 panes (anchor + parent + current + …)    |
-| N levels deep        | N + 2 panes                                |
+The directory you launched in becomes the **anchor** — a fixed left boundary that *never* moves. Pressing `h` at the anchor is a no‑op (you can't go above your project root). Every navigation rebuilds the visible chain as `[anchor → … → current]`, so the root is always on screen, and so is the path that got you here.
 
-### 3. Shift+Arrow anchor control
-- `Shift+Left`  — **expand** root (move anchor up to its parent)
-- `Shift+Right` — **shrink** root (move anchor down to current directory)
+This single decision is what makes Jermi feel like VSCode's file explorer instead of like ranger:
 
-Adjust your "project root" on the fly without restarting.
+| Sliding window (ranger / lf / Yazi) | Anchored (Jermi)                          |
+| ----------------------------------- | ----------------------------------------- |
+| Three columns, always the same      | Columns grow as you go deeper             |
+| Root scrolls off when you dive deep | Root stays pinned on the left, forever    |
+| "Where am I?" requires the title bar| The breadcrumb *is* the layout            |
+| Project boundary is implicit        | Project boundary is a first‑class object  |
+
+Two features fall out of this directly:
+
+**Dynamic panes** — instead of a fixed 2 or 3‑pane slot count, the view *grows* with depth.
+
+| Where you are  | Panes shown                                |
+| -------------- | ------------------------------------------ |
+| At anchor      | 2 panes (current + preview)                |
+| 1 level deep   | 3 panes (anchor + current + preview)       |
+| 2 levels deep  | 4 panes (anchor + parent + current + …)    |
+| N levels deep  | N + 2 panes                                |
+
+**Anchor isn't immutable** — `Shift+Left` expands the anchor up to its parent, `Shift+Right` shrinks it down to wherever you are now. Treat your "project root" as a dial you can turn at runtime, not a CLI flag you set on launch.
 
 ---
 

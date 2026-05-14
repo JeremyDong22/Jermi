@@ -4,6 +4,14 @@
 
 Jermi is a fork of [Yazi](https://github.com/sxyazi/yazi) terminal file manager with **anchor-based navigation** and **dynamic panes**.
 
+## The Core Idea: Anchor
+
+**Anchor is the headline feature of this fork. Everything else — dynamic panes, the auto-derived `pane_urls` chain, `Leave` being blocked at the root, `Shift+Arrow` controls — is downstream of it.** When in doubt about whether a change is on-brand, ask: *does this preserve the anchor as a hard left boundary that the user can see, trust, and adjust at runtime?* If not, push back.
+
+Why it matters in one line: every other TUI file manager (ranger, lf, broot, even upstream Yazi) gives you a **sliding window** that scrolls the project root off-screen the moment you go a few levels deep. Jermi pins it. That single decision is what makes the rest of the UX work — the breadcrumb *is* the layout, project boundary is a first-class object, and you never have to glance at the title bar to remember where you are.
+
+Don't refactor the anchor out, don't add escape hatches that quietly cross it (e.g. silently `cd`-ing above it via reveal/back), and don't treat the 2-pane vs N-pane mode switch as a layout glitch — it's the whole point.
+
 ## Key Concepts
 
 ### Anchor System
